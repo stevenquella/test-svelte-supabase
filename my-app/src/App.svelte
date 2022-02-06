@@ -3,13 +3,17 @@
   const supabase_url = import.meta.env.VITE_SUPABASE_URL as string;
   const supabase_anon_key = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
+  let user: string;
+  let email: string;
+  let password: string;
+
   const client = createClient(supabase_url, supabase_anon_key);
   client.auth.onAuthStateChange(function (event, session) {
     console.log(event, session);
+    user = session?.user?.id;
   });
 
-  let email: string;
-  let password: string;
+  user = client.auth.user()?.id;
 
   async function onSignUp() {
     const response = await client.auth.signUp({
@@ -32,9 +36,19 @@
       console.error(response.error);
     }
   }
+
+  async function onSignOut() {
+    await client.auth.signOut();
+  }
+
+  async function retrieveMeals() {
+    return client.from("meals").select("*");
+  }
 </script>
 
 <main>
+  <p>{user}</p>
+
   <form on:submit|preventDefault="{onSignUp}">
     <input name="email" placeholder="email" type="email" bind:value="{email}" />
     <input
@@ -56,4 +70,16 @@
     />
     <button type="submit"> SIGN IN </button>
   </form>
+
+  <button type="input" on:click="{onSignOut}">SIGN OUT</button>
+
+  <div>
+    {#if user}
+      {#await retrieveMeals()}
+        <p>Loading meals...</p>
+      {:then result}
+        <p>{JSON.stringify(result)}</p>
+      {/await}
+    {/if}
+  </div>
 </main>
