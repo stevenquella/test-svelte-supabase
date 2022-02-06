@@ -1,65 +1,59 @@
 <script lang="ts">
-  import logo from './assets/svelte.png'
-  import Counter from './lib/Counter.svelte'
+  import { createClient } from "@supabase/supabase-js";
+  const supabase_url = import.meta.env.VITE_SUPABASE_URL as string;
+  const supabase_anon_key = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+  const client = createClient(supabase_url, supabase_anon_key);
+  client.auth.onAuthStateChange(function (event, session) {
+    console.log(event, session);
+  });
+
+  let email: string;
+  let password: string;
+
+  async function onSignUp() {
+    const response = await client.auth.signUp({
+      email,
+      password,
+    });
+
+    if (response.error) {
+      console.error(response.error);
+    }
+  }
+
+  async function onSignIn() {
+    const response = await client.auth.signIn({
+      email,
+      password,
+    });
+
+    if (response.error) {
+      console.error(response.error);
+    }
+  }
 </script>
 
 <main>
-  <img src={logo} alt="Svelte Logo" />
-  <h1>Hello Typescript!</h1>
+  <form on:submit|preventDefault="{onSignUp}">
+    <input name="email" placeholder="email" type="email" bind:value="{email}" />
+    <input
+      name="password"
+      placeholder="password"
+      type="password"
+      bind:value="{password}"
+    />
+    <button type="submit"> SIGN UP </button>
+  </form>
 
-  <Counter />
-
-  <p>
-    Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
-    apps.
-  </p>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme">SvelteKit</a> for
-    the officially supported framework, also powered by Vite!
-  </p>
+  <form on:submit|preventDefault="{onSignIn}">
+    <input name="email" placeholder="email" type="email" bind:value="{email}" />
+    <input
+      name="password"
+      placeholder="password"
+      type="password"
+      bind:value="{password}"
+    />
+    <button type="submit"> SIGN IN </button>
+  </form>
 </main>
-
-<style>
-  :root {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  }
-
-  main {
-    text-align: center;
-    padding: 1em;
-    margin: 0 auto;
-  }
-
-  img {
-    height: 16rem;
-    width: 16rem;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4rem;
-    font-weight: 100;
-    line-height: 1.1;
-    margin: 2rem auto;
-    max-width: 14rem;
-  }
-
-  p {
-    max-width: 14rem;
-    margin: 1rem auto;
-    line-height: 1.35;
-  }
-
-  @media (min-width: 480px) {
-    h1 {
-      max-width: none;
-    }
-
-    p {
-      max-width: none;
-    }
-  }
-</style>
